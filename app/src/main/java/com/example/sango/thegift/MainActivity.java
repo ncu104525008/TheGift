@@ -3,6 +3,7 @@ package com.example.sango.thegift;
 import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -48,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
                 if (position == 0) {
                     addCard();
                 } else {
-                    selectCard(position-1);
+                    selectCard(position);
                 }
             }
         });
@@ -102,8 +103,13 @@ public class MainActivity extends AppCompatActivity {
                             cv.put(MyDBHelper.NAME_COLUMN, cardName);
                             cv.put(MyDBHelper.STATUS_COLUMN, 0);
 
-                            db.insert(MyDBHelper.TABLE_NAME, null, cv);
-                            showCard();
+                            long newCardId = db.insert(MyDBHelper.TABLE_NAME, null, cv);
+                            Intent intent = new Intent(MainActivity.this, CardActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putLong("id", newCardId);
+                            intent.putExtras(bundle);
+                            startActivity(intent);
+                            finish();
                         }
                     }
                 }).show();
@@ -168,7 +174,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void selectCard(int id) {
-        MyCard card = myCards.get(id);
-        Log.w("selectCard: ", "id:" + card.getId() + ", name:" + card.getName());
+        Intent intent = new Intent(MainActivity.this, CardActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putLong("id", id);
+        intent.putExtras(bundle);
+        startActivity(intent);
+        finish();
     }
 }
