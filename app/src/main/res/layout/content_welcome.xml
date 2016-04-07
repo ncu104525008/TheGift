@@ -22,7 +22,7 @@
         <ImageButton
             android:layout_width="205dp"
             android:layout_height="190dp"
-            android:id="@+id/imageButton"
+            android:id="@+id/ButtonReceive"
             android:background="@mipmap/r2"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
@@ -31,7 +31,7 @@
         <ImageButton
             android:layout_width="210dp"
             android:layout_height="190dp"
-            android:id="@+id/imageButton3"
+            android:id="@+id/ButtonList"
             android:background="@mipmap/l2"
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
@@ -41,7 +41,7 @@
         <ImageButton
             android:layout_width="210dp"
             android:layout_height="190dp"
-            android:id="@+id/imageButton2"
+            android:id="@+id/ButtonSend"
             android:background="@mipmap/s2"
             android:layout_marginTop="143dp"
             android:layout_alignParentTop="true"
