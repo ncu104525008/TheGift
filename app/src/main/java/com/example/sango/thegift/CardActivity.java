@@ -1,5 +1,6 @@
 package com.example.sango.thegift;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -7,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
@@ -71,6 +73,7 @@ public class CardActivity extends AppCompatActivity {
         btnPlay = (Button) findViewById(R.id.play);
 
         btnRecord.setOnClickListener(new Button.OnClickListener() {
+            @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void onClick(View view) {
                 if(recordState == 0) {
