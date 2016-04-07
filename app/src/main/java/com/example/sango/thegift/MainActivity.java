@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -38,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private String[] list;
     private ArrayAdapter<String> listAdapter;
     private String cardName;
+    private MyHandler myHandler;
+    private MyServerSocket myThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,10 +74,100 @@ public class MainActivity extends AppCompatActivity {
 
         if(type.equals("receive"))
         {
-            Thread tests = new Thread(serverSocket);
-            tests.start();
+            myHandler = new MyHandler(MainActivity.this);
+            myThread = new MyServerSocket(myHandler);
+            new Thread(myThread).start();
         }
     }
+
+    public static void start123() {
+
+    }
+
+    private class MyServerSocket implements Runnable {
+        private MyHandler threadHandler;
+
+        public MyServerSocket(MyHandler myHandler) {
+            super();
+            this.threadHandler = myHandler;
+        }
+
+        @Override
+        public void run() {
+            try {
+                ServerSocket myServer = new ServerSocket(1111);
+                while (true) {
+                    Log.w("Server: ", "Connecting...");
+                    BufferedInputStream in = null;
+                    Log.w("Server: ", "Receiving1 start");
+
+                    String data = "";
+                    try {
+                        Socket client = myServer.accept();
+                        in = new BufferedInputStream(client.getInputStream());
+                        byte[] b = new byte[1024];
+                        int length;
+                        while ((length = in.read(b)) > 0) {
+                            Log.w("Server: ", "length:" + length);
+                            data += new String(b, 0, length);
+                        }
+                        in.close();
+                        client.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    cardName = data;
+                    Log.w("Server: ", "Receiving1 complete");
+                    long newCardId = addCard();
+
+                    String imgPath = FileUtil.getExternalStorageDir(FileUtil.APP_DIR) + "/" + newCardId + ".jpg";
+                    String voicePath = FileUtil.getExternalStorageDir(FileUtil.APP_DIR) + "/" + newCardId + ".mp4";
+
+
+                    try {
+                        Socket client = myServer.accept();
+                        Log.w("Server: ", "Receiving2 start");
+                        OutputStream out = new FileOutputStream(imgPath);
+                        byte buff[] = new byte[1024];
+                        int len;
+
+                        InputStream inputStream = client.getInputStream();
+                        while ((len = inputStream.read(buff)) != -1) {
+                            out.write(buff, 0, len);
+                        }
+                        out.close();
+                        inputStream.close();
+                        Log.w("Server: ", "Receiving2 complete");
+
+                        Socket client2 = myServer.accept();
+                        Log.w("Server: ", "Receiving3 start");
+                        OutputStream out2 = new FileOutputStream(voicePath);
+                        byte buff2[] = new byte[1024];
+                        int len2;
+
+                        InputStream inputStream2 = client2.getInputStream();
+                        while ((len2 = inputStream2.read(buff2)) != -1) {
+                            out2.write(buff2, 0, len2);
+                        }
+                        out2.close();
+                        inputStream2.close();
+                        Log.w("Server: ", "Receiving3 complete");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        Message msg = this.threadHandler.obtainMessage();
+                        msg.getData().putString("msg", "receive");
+                        threadHandler.sendMessage(msg);
+
+                        Log.w("Server: ", "Done.");
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     Runnable serverSocket = new Runnable() {
         @Override
         public void run() {
@@ -177,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
         return newCardId;
     }
 
-    private void showCard(String type) {
+    public void showCard(String type) {
         Log.w("showCard: ", type);
         myCards.clear();
         String where = "";
