@@ -83,7 +83,7 @@ public class CardActivity extends AppCompatActivity {
         Bitmap bitmap = BitmapFactory.decodeFile(fileName);
         mImg.setImageBitmap(bitmap);
 
-        if(mCamera != null) {
+        if(status == 0) {
             mCamera.setOnClickListener(new Button.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -102,7 +102,7 @@ public class CardActivity extends AppCompatActivity {
         btnRecord = (Button) findViewById(R.id.record);
         btnPlay = (Button) findViewById(R.id.play);
 
-        if(btnRecord != null) {
+        if(status == 0) {
             btnRecord.setOnClickListener(new Button.OnClickListener() {
                 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
                 @Override
@@ -133,7 +133,6 @@ public class CardActivity extends AppCompatActivity {
             });
         }
 
-        if(btnPlay != null) {
             btnPlay.setOnClickListener(new Button.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -154,8 +153,6 @@ public class CardActivity extends AppCompatActivity {
                     }
                 }
             });
-        }
-        if(btnsend != null) {
             btnsend.setOnClickListener(new Button.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -174,7 +171,6 @@ public class CardActivity extends AppCompatActivity {
                             }).show();
                 }
             });
-        }
     }
 
     Runnable clientSocket = new Runnable() {

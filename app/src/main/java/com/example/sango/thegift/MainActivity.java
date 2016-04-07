@@ -85,10 +85,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public static void start123() {
-
-    }
-
     private class MyServerSocket implements Runnable {
         private MyHandler threadHandler;
 
@@ -175,8 +171,12 @@ public class MainActivity extends AppCompatActivity {
     }
     void setUpAsForeground(String text) {
 
+        Intent notifyIntent = new Intent(getApplicationContext(), MainActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putString("type", "receive");
+        notifyIntent.putExtras(bundle);
         PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
-                new Intent(getApplicationContext(), MainActivity.class),
+                notifyIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
         mNotification = new Notification.Builder(getApplicationContext())
                 .setAutoCancel(true)
@@ -189,7 +189,6 @@ public class MainActivity extends AppCompatActivity {
 
             NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.notify(NOTIFICATION_ID, mNotification);
-
 
     }
     Runnable serverSocket = new Runnable() {

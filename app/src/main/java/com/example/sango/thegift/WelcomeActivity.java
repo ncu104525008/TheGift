@@ -68,7 +68,9 @@ public class WelcomeActivity extends AppCompatActivity {
             }
         });
     }
-
+    public void onResume() {
+        super.onResume();
+    }
     private void addCard() {
         final View addCardView = LayoutInflater.from(WelcomeActivity.this).inflate(R.layout.add_card, null);
         new AlertDialog.Builder(WelcomeActivity.this)
