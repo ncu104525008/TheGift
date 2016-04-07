@@ -11,7 +11,7 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.example.sango.thegift.MainActivity"
     tools:showIn="@layout/activity_welcome"
-    android:background="#faf6d7">
+    android:background="@mipmap/b1">
 
 
     <RelativeLayout
@@ -20,10 +20,10 @@
         android:id="@+id/relativeLayout">
 
         <ImageButton
-            android:layout_width="200dp"
+            android:layout_width="205dp"
             android:layout_height="190dp"
             android:id="@+id/imageButton"
-            android:background="@mipmap/r1"
+            android:background="@mipmap/r2"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true" />
@@ -32,7 +32,7 @@
             android:layout_width="210dp"
             android:layout_height="190dp"
             android:id="@+id/imageButton3"
-            android:background="@mipmap/l1"
+            android:background="@mipmap/l2"
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
@@ -42,11 +42,11 @@
             android:layout_width="210dp"
             android:layout_height="190dp"
             android:id="@+id/imageButton2"
-            android:background="@mipmap/s1"
+            android:background="@mipmap/s2"
+            android:layout_marginTop="143dp"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="140dp" />
+            android:layout_alignParentEnd="true" />
     </RelativeLayout>
 
 </RelativeLayout>
