@@ -64,16 +64,32 @@
                     android:layout_marginRight="5dp"
                     android:layout_weight="1" />
 
-                <Button
-                    android:id="@+id/stop"
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent"
-                    android:layout_marginRight="5dp"
-                    android:background="@mipmap/stop"
-                    android:layout_weight="1" />
 
                 <Button
                     android:id="@+id/play"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_gravity="center_vertical"
+                    android:background="@mipmap/demo"
+                    android:layout_weight="1" />
+            </TableRow>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/relative3"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_below="@+id/relative2"
+            android:layout_weight="6"
+            android:layout_margin="5dp">
+
+            <TableRow
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:orientation="horizontal" >
+
+                <Button
+
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
                     android:layout_gravity="center_vertical"

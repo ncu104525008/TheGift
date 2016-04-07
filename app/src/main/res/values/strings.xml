@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TheGift</string>
+    <string name="app_name">The Gift</string>
     <string name="action_settings">Settings</string>
     <string name="add_card">建立卡片</string>
     <string name="input_card_name">輸入卡片名稱</string>
