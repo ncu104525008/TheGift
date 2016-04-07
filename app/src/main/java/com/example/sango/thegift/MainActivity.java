@@ -22,6 +22,12 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private List<MyCard> myCards;
     private String[] list;
     private ArrayAdapter<String> listAdapter;
+    private String cardName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,30 +49,102 @@ public class MainActivity extends AppCompatActivity {
         myCards = new ArrayList<>();
         db = MyDBHelper.getDatabase(MainActivity.this);
 
+        Bundle bundle = this.getIntent().getExtras();
+        final String type = bundle.getString("type");
+
         listView = (ListView) findViewById(R.id.listView);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (position == 0) {
-                    addCard();
-                } else {
-                    selectCard(position);
-                }
+                    selectCard(position+1);
             }
         });
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                if(position > 0) {
-                    delCard(position - 1);
-                }
+                delCard(position, type);
                 return true;
             }
         });
 
-        showCard();
-    }
+        showCard(type);
 
+        if(type.equals("receive"))
+        {
+            Thread tests = new Thread(serverSocket);
+            tests.start();
+        }
+    }
+    Runnable serverSocket = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                Log.w("Server: ", "Connecting...");
+                BufferedInputStream in = null;
+                ServerSocket myServer = new ServerSocket(1111);
+                    Log.w("Server: ", "Receiving1 start");
+
+                    String data = "";
+                    try {
+                        Socket client = myServer.accept();
+                        in = new BufferedInputStream(client.getInputStream());
+                        byte[] b = new byte[1024];
+                        int length;
+                        while ((length = in.read(b)) > 0) {
+                            Log.w("Server: ", "length:" + length);
+                            data += new String(b, 0, length);
+                        }
+                        in.close();
+                        client.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    cardName = data;
+                Log.w("Server: ", "Receiving1 complete");
+                    long newCardId = addCard();
+
+                    String imgPath = FileUtil.getExternalStorageDir(FileUtil.APP_DIR) + "/" + newCardId + ".jpg";
+                    String voicePath = FileUtil.getExternalStorageDir(FileUtil.APP_DIR) + "/" + newCardId + ".mp4";
+
+
+                    try {
+                        Socket client = myServer.accept();
+                        Log.w("Server: ", "Receiving2 start");
+                        OutputStream out = new FileOutputStream(imgPath);
+                        byte buff[] = new byte[1024];
+                        int len;
+
+                        InputStream inputStream = client.getInputStream();
+                        while((len = inputStream.read(buff)) != -1) {
+                            out.write(buff, 0, len);
+                        }
+                        out.close();
+                        inputStream.close();
+                        Log.w("Server: ", "Receiving2 complete");
+
+                        Socket client2 = myServer.accept();
+                        Log.w("Server: ", "Receiving3 start");
+                        OutputStream out2 = new FileOutputStream(voicePath);
+                        byte buff2[] = new byte[1024];
+                        int len2;
+
+                        InputStream inputStream2 = client2.getInputStream();
+                        while((len2 = inputStream2.read(buff2)) != -1) {
+                            out2.write(buff2, 0, len2);
+                        }
+                        out2.close();
+                        inputStream2.close();
+                        Log.w("Server: ", "Receiving3 complete");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        Log.w("Server: ", "Done.");
+                    }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    };
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -88,36 +167,25 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void addCard() {
-        final View addCardView = LayoutInflater.from(MainActivity.this).inflate(R.layout.add_card, null);
-        new AlertDialog.Builder(MainActivity.this)
-                .setTitle(R.string.input_card_name)
-                .setView(addCardView)
-                .setPositiveButton(R.string.add_card, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        EditText editText = (EditText) addCardView.findViewById(R.id.card_name);
-                        String cardName = editText.getText().toString();
-                        if (cardName.length() > 0) {
-                            ContentValues cv = new ContentValues();
-                            cv.put(MyDBHelper.NAME_COLUMN, cardName);
-                            cv.put(MyDBHelper.STATUS_COLUMN, 0);
+    private long addCard() {
+        ContentValues cv = new ContentValues();
+        cv.put(MyDBHelper.NAME_COLUMN, cardName);
+        cv.put(MyDBHelper.STATUS_COLUMN, 1);
 
-                            long newCardId = db.insert(MyDBHelper.TABLE_NAME, null, cv);
-                            Intent intent = new Intent(MainActivity.this, CardActivity.class);
-                            Bundle bundle = new Bundle();
-                            bundle.putLong("id", newCardId);
-                            intent.putExtras(bundle);
-                            startActivity(intent);
-                            finish();
-                        }
-                    }
-                }).show();
+        long newCardId = db.insert(MyDBHelper.TABLE_NAME, null, cv);
+
+        return newCardId;
     }
 
-    private void showCard() {
+    private void showCard(String type) {
+        Log.w("showCard: ", type);
         myCards.clear();
-        String where = MyDBHelper.STATUS_COLUMN + "=" + 0;
+        String where = "";
+        if(type.equals("list")) {
+            where = MyDBHelper.STATUS_COLUMN + "=" + 0;
+        } else if(type.equals("receive")) {
+            where = MyDBHelper.STATUS_COLUMN + "=" + 1;
+        }
         Cursor cursor = db.query(MyDBHelper.TABLE_NAME, null, where, null, null, null, null, null);
 
         while(cursor.moveToNext()) {
@@ -131,23 +199,22 @@ public class MainActivity extends AppCompatActivity {
         list = getCardList();
         listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, list);
         listView.setAdapter(listAdapter);
+        Log.w("showCard: ", "end");
     }
 
     private String[] getCardList() {
-        int size = myCards.size() + 1;
+        int size = myCards.size();
         String[] cardList;
         cardList = new String[size];
 
-        cardList[0] = "建立新卡片";
-
-        for(int i=1;i<size;i++) {
-            cardList[i] = myCards.get(i-1).getName();
+        for(int i=0;i<size;i++) {
+            cardList[i] = myCards.get(i).getName();
         }
 
         return cardList;
     }
 
-    private void delCard(int id) {
+    private void delCard(int id, final String type) {
         final MyCard card = myCards.get(id);
 
         new AlertDialog.Builder(MainActivity.this)
@@ -161,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
                         cv.put(MyDBHelper.STATUS_COLUMN, -1);
                         String where = MyDBHelper.KEY_ID + "=" + card.getId();
                         db.update(MyDBHelper.TABLE_NAME, cv, where, null);
-                        showCard();
+                        showCard(type);
                     }
                 })
                 .setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -176,9 +243,12 @@ public class MainActivity extends AppCompatActivity {
     private void selectCard(int id) {
         Intent intent = new Intent(MainActivity.this, CardActivity.class);
         Bundle bundle = new Bundle();
-        bundle.putLong("id", id);
+        int cid = myCards.get(id-1).getId();
+        bundle.putLong("id", cid);
+        cardName = myCards.get(id-1).getName();
+        bundle.putString("cardName", cardName);
         intent.putExtras(bundle);
         startActivity(intent);
-        finish();
+
     }
 }

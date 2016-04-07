@@ -3,4 +3,6 @@
     <string name="action_settings">Settings</string>
     <string name="add_card">建立卡片</string>
     <string name="input_card_name">輸入卡片名稱</string>
+    <string name="send_card">輸入IP位置</string>
+    <string name="input_ip">傳送</string>
 </resources>
