@@ -364,6 +364,8 @@ public class MainActivity extends AppCompatActivity {
         bundle.putLong("id", cid);
         cardName = myCards.get(id-1).getName();
         bundle.putString("cardName", cardName);
+        int status = myCards.get(id-1).getStatus();
+        bundle.putInt("status", status);
         intent.putExtras(bundle);
         startActivity(intent);
 

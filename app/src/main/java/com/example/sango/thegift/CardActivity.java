@@ -53,8 +53,18 @@ public class CardActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Bundle bundle = this.getIntent().getExtras();
+        id = bundle.getLong("id");
+        cardName = bundle.getString("cardName");
+        int status = bundle.getInt("status");
+
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_card);
+
+        if(status == 0) {
+            setContentView(R.layout.activity_card);
+        } else if(status == 1) {
+            setContentView(R.layout.activity_cardlist);
+        }
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -64,9 +74,6 @@ public class CardActivity extends AppCompatActivity {
         mCamera = (Button) findViewById(R.id.camera);
         btnsend = (Button) findViewById(R.id.send);
 
-        Bundle bundle = this.getIntent().getExtras();
-        id = bundle.getLong("id");
-        cardName = bundle.getString("cardName");
         imgPath = FileUtil.getExternalStorageDir(FileUtil.APP_DIR) + "/" + id + ".jpg";
         voicePath = FileUtil.getExternalStorageDir(FileUtil.APP_DIR) + "/" + id + ".mp4";
         File pictureFile = new File(FileUtil.getExternalStorageDir(FileUtil.APP_DIR),
@@ -76,90 +83,98 @@ public class CardActivity extends AppCompatActivity {
         Bitmap bitmap = BitmapFactory.decodeFile(fileName);
         mImg.setImageBitmap(bitmap);
 
-        mCamera.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intentCamera =
-                        new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                File pictureFile = new File(FileUtil.getExternalStorageDir(FileUtil.APP_DIR),
-                        id + ".jpg");
-                Uri uri = Uri.fromFile(pictureFile);
-                fileName = uri.getPath();
-                intentCamera.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-                startActivityForResult(intentCamera, 66);
-            }
-        });
+        if(mCamera != null) {
+            mCamera.setOnClickListener(new Button.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intentCamera =
+                            new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    File pictureFile = new File(FileUtil.getExternalStorageDir(FileUtil.APP_DIR),
+                            id + ".jpg");
+                    Uri uri = Uri.fromFile(pictureFile);
+                    fileName = uri.getPath();
+                    intentCamera.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                    startActivityForResult(intentCamera, 66);
+                }
+            });
+        }
 
         btnRecord = (Button) findViewById(R.id.record);
         btnPlay = (Button) findViewById(R.id.play);
 
-        btnRecord.setOnClickListener(new Button.OnClickListener() {
-            @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-            @Override
-            public void onClick(View view) {
-                if(recordState == 0) {
-                    mediaRecorder = new MediaRecorder();
-                    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                    mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-                    mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-                    mediaRecorder.setOutputFile(FileUtil.getExternalStorageDir(FileUtil.APP_DIR) + "/" + id + ".mp4");
+        if(btnRecord != null) {
+            btnRecord.setOnClickListener(new Button.OnClickListener() {
+                @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+                @Override
+                public void onClick(View view) {
+                    if (recordState == 0) {
+                        mediaRecorder = new MediaRecorder();
+                        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+                        mediaRecorder.setOutputFile(FileUtil.getExternalStorageDir(FileUtil.APP_DIR) + "/" + id + ".mp4");
+                        try {
+                            mediaRecorder.prepare();
+                            mediaRecorder.start();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        recordState = 1;
+                        btnRecord.setBackground(getResources().getDrawable(R.mipmap.stop));
+                    } else {
+
+                        mediaRecorder.stop();
+                        mediaRecorder.release();
+                        recordState = 0;
+                        btnRecord.setBackground(getResources().getDrawable(R.mipmap.audio2));
+                    }
+                }
+            });
+        }
+
+        if(btnPlay != null) {
+            btnPlay.setOnClickListener(new Button.OnClickListener() {
+                @Override
+                public void onClick(View view) {
                     try {
-                        mediaRecorder.prepare();
-                        mediaRecorder.start();
+                        mediaPlayer = new MediaPlayer();
+                        mediaPlayer.setDataSource(FileUtil.getExternalStorageDir(FileUtil.APP_DIR) + "/" + id + ".mp4");
+                        mediaPlayer.prepare();
+                        mediaPlayer.start();
+                        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mp) {
+                                mediaPlayer.stop();
+                                mediaPlayer.release();
+                            }
+                        });
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
-                    recordState = 1;
-                    btnRecord.setBackground(getResources().getDrawable(R.mipmap.stop));
-                } else {
-
-                    mediaRecorder.stop();
-                    mediaRecorder.release();
-                    recordState = 0;
-                    btnRecord.setBackground(getResources().getDrawable(R.mipmap.audio2));
                 }
-            }
-        });
-
-        btnPlay.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    mediaPlayer = new MediaPlayer();
-                    mediaPlayer.setDataSource(FileUtil.getExternalStorageDir(FileUtil.APP_DIR) + "/" + id + ".mp4");
-                    mediaPlayer.prepare();
-                    mediaPlayer.start();
-                    mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                        @Override
-                        public void onCompletion(MediaPlayer mp) {
-                            mediaPlayer.stop();
-                            mediaPlayer.release();
-                        }
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
+            });
+        }
+        if(btnsend != null) {
+            btnsend.setOnClickListener(new Button.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    final View addCardView = LayoutInflater.from(CardActivity.this).inflate(R.layout.add_card, null);
+                    new AlertDialog.Builder(CardActivity.this)
+                            .setTitle(R.string.send_card)
+                            .setView(addCardView)
+                            .setPositiveButton(R.string.input_ip, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    EditText editText = (EditText) addCardView.findViewById(R.id.card_name);
+                                    ipAddr = editText.getText().toString();
+                                    Thread test = new Thread(clientSocket);
+                                    test.start();
+                                }
+                            }).show();
                 }
-            }
-        });
-        btnsend.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final View addCardView = LayoutInflater.from(CardActivity.this).inflate(R.layout.add_card, null);
-                new AlertDialog.Builder(CardActivity.this)
-                        .setTitle(R.string.send_card)
-                        .setView(addCardView)
-                        .setPositiveButton(R.string.input_ip, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                EditText editText = (EditText) addCardView.findViewById(R.id.card_name);
-                                ipAddr = editText.getText().toString();
-                                Thread test = new Thread(clientSocket);
-                                test.start();
-                            }
-                        }).show();
-            }
-        });
+            });
+        }
     }
 
     Runnable clientSocket = new Runnable() {
