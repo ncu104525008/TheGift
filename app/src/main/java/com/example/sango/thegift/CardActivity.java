@@ -25,12 +25,12 @@ public class CardActivity extends AppCompatActivity {
     private Button mCamera;
     private ImageView mImg;
     private String fileName;
-    private Button btnStart;
-    private Button btnStop;
+    private Button btnRecord;
     private Button btnPlay;
     private MediaRecorder mediaRecorder;
     private MediaPlayer mediaPlayer;
     private long id;
+    private int recordState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +39,7 @@ public class CardActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
+        recordState = 0;
 
         mImg = (ImageView) findViewById(R.id.img);
         mCamera = (Button) findViewById(R.id.camera);
@@ -67,32 +67,34 @@ public class CardActivity extends AppCompatActivity {
             }
         });
 
-        btnStart = (Button) findViewById(R.id.start);
-        btnStop = (Button) findViewById(R.id.stop);
+        btnRecord = (Button) findViewById(R.id.record);
         btnPlay = (Button) findViewById(R.id.play);
 
-        btnStart.setOnClickListener(new Button.OnClickListener() {
+        btnRecord.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mediaRecorder = new MediaRecorder();
-                mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-                mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-                mediaRecorder.setOutputFile(FileUtil.getExternalStorageDir(FileUtil.APP_DIR) + "/" + id + ".mp4");
-                try {
-                    mediaRecorder.prepare();
-                    mediaRecorder.start();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+                if(recordState == 0) {
+                    mediaRecorder = new MediaRecorder();
+                    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                    mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                    mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+                    mediaRecorder.setOutputFile(FileUtil.getExternalStorageDir(FileUtil.APP_DIR) + "/" + id + ".mp4");
+                    try {
+                        mediaRecorder.prepare();
+                        mediaRecorder.start();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
-        btnStop.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mediaRecorder.stop();
-                mediaRecorder.release();
+                    recordState = 1;
+                    btnRecord.setBackground(getResources().getDrawable(R.mipmap.stop));
+                } else {
+
+                    mediaRecorder.stop();
+                    mediaRecorder.release();
+                    recordState = 0;
+                    btnRecord.setBackground(getResources().getDrawable(R.mipmap.audio2));
+                }
             }
         });
 
