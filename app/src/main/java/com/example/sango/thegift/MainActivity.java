@@ -1,7 +1,11 @@
 package com.example.sango.thegift;
 
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -41,7 +45,8 @@ public class MainActivity extends AppCompatActivity {
     private String cardName;
     private MyHandler myHandler;
     private MyServerSocket myThread;
-
+    Notification mNotification = null;
+    final int NOTIFICATION_ID = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -158,8 +163,9 @@ public class MainActivity extends AppCompatActivity {
                         Message msg = this.threadHandler.obtainMessage();
                         msg.getData().putString("msg", "receive");
                         threadHandler.sendMessage(msg);
-
+                        setUpAsForeground("接收" + cardName);
                         Log.w("Server: ", "Done.");
+
                     }
                 }
             } catch (Exception e) {
@@ -167,7 +173,25 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+    void setUpAsForeground(String text) {
 
+        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
+                new Intent(getApplicationContext(), MainActivity.class),
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        mNotification = new Notification.Builder(getApplicationContext())
+                .setAutoCancel(true)
+                .setContentTitle("Receive")
+                .setContentText(text)
+                .setContentIntent(pi)
+                .setSmallIcon(R.drawable.giftcard)
+                .setWhen(System.currentTimeMillis())
+                .build();
+
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.notify(NOTIFICATION_ID, mNotification);
+
+
+    }
     Runnable serverSocket = new Runnable() {
         @Override
         public void run() {
